@@ -1,0 +1,28 @@
+filebeat:
+  prospectors:
+
+filebeat.config.modules:
+  path: ${path.config}/modules.d/*.yml
+
+  reload.enabled: false
+
+setup.template.settings:
+  index.number_of_shards: 3
+
+setup.kibana:
+
+############################# Output ##########################################
+
+output:
+  logstash:
+    enabled: true
+    hosts: logstash:5044
+    index: apache
+
+############################# Shipper #########################################
+
+shipper:
+
+logging:
+  to_syslog: false
+  to_files: false

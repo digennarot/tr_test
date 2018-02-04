@@ -1,0 +1,92 @@
+version: '3'
+services:
+
+  jenkins:
+    container_name: jenkins
+    hostname: jenkins
+    build: 
+      context: ./jenkins
+    environment:  
+      JAVA_OPTS: "-Djava.awt.headless=true"  
+      JAVA_OPTS: "-Djenkins.install.runSetupWizard=false"
+    ports:
+      - "50000:50000"  
+      - "8080:8080"  
+    links:
+      - redis
+
+  redis:
+    build: 
+      context: ./redis
+    container_name: redis
+    hostname: redis
+    tty: true
+
+  web1:
+    container_name: web1
+    hostname: web1
+    build: 
+      context: ./apache
+
+  web2:  
+    container_name: web2
+    hostname: web2
+    build: 
+      context: ./apache
+
+  php:
+    hostname: php
+    container_name: php
+    build: 
+      context: ./php
+    links:
+      - redis
+
+  lb:
+    container_name: lb
+    hostname: lb
+    ports:
+      - "80:80"
+    build: 
+      context: ./lb
+    links:
+      - web1
+      - web2
+
+  elasticsearch:
+    container_name: elasticsearch
+    hostname: elasticsearch
+    build:
+      context: elasticsearch/
+    ports:
+      - "9200:9200"
+      - "9300:9300"
+    environment:
+      ES_JAVA_OPTS: "-Xmx256m -Xms256m"
+
+  logstash:
+    container_name: logstash
+    hostname: logstash
+    build:
+      context: logstash/
+    ports:
+      - "5044:5044"
+    environment:
+      LS_JAVA_OPTS: "-Xmx256m -Xms256m"
+    links:
+      - web1
+      - web2
+    depends_on:
+      - elasticsearch
+
+  kibana:
+    container_name: kibana
+    hostname: kibana
+    build:
+      context: kibana/
+    ports:
+      - "5601:5601"
+    depends_on:
+      - elasticsearch
+    links:
+      - elasticsearch
